@@ -1,0 +1,7 @@
+1x BaseA
+1x BaseB
+4x Gear
+4x LightBrick (white)
+2x FullDigit
+1x 6Digit
+1x 3Digit
