@@ -3,13 +3,13 @@
 
 ## To do list
 - [x] Print larger components
-- [ ] Print smaller components
+- [ ] Print smaller components - in progress
 - [ ] Breadboard
-  - [ ] RTC module
+  - [x] RTC module
+  - [x] Rotary Switch
   - [ ] Single stepper motor with 4988 module
   - [ ] 4 steppers with expansion Board
   - [ ] LED backlight
-  - [ ] Switches
   - [ ] Full breadboard
 - [ ] Create wiring diagrams
 - [ ] Build prototype board
@@ -21,18 +21,26 @@
 - [ ] Publish and post
 
 
- ## References and Attributions
- This project is based on this
- [reddit comment](https://www.reddit.com/r/arduino/comments/pnyy3g/i_made_a_physical_version_of_the_oddly_satisfying/) from reddit user [ragusa12](https://www.reddit.com/user/ragusa12).  All props to him for concept and physical design.  This project contributes only by making the project more easily reproduced.
+ ## Project Overview
+ A clock that tells the time with backlit numbers aligned vertically in four number arrays moved by a rack and pinion mechanism with exposed gears.  The clock mechanism comprises an Arduino microcontroller reading the time from an embedded real-time clock (RTC) and driving the four gears through stepper motors based on the time maintained.  A rotary switch allows the user to adjust the time manually.
 
- The original posting did not include wiring diagrams.  In creating the designs for this project, I've made some changes that I found made the project easier to develop:
+ #### References and Attributions
+
+ This project is based on this
+ [reddit comment](https://www.reddit.com/r/arduino/comments/pnyy3g/i_made_a_physical_version_of_the_oddly_satisfying/) from reddit user [ragusa12](https://www.reddit.com/user/ragusa12).  All props to him for concept and physical design.  
+
+ #### Modifications from original
+  The original posting did not include wiring diagrams.  I've created them for this project and you can find them in the circuits folder.  
+
+ In creating the designs for this project, I've made some changes that I found made the project easier to develop and improved usage:
  - Use A4988 stepper motor driver for the 28BYJ-48 motors instead of their default driver.  It takes a little hacking, but it reduces pin requirement for each motor from 2 to 4.
  - Use the A4988 expansion board to simplify wiring.  You plug the four A4988s directly into the expansion board and then just wire the expansion board to your Arduino
-
+ - Incorporated a voltage regulator to create a 5v bus to simplify the wiring
+ - Added a rotary switch for adjusting the time for daylight savings or if the RTC battery dies.
 
 
  #### Background Information
- Reference material I found useful in replicating the design
+ Reference material I found useful in developing this version:
  - [RTC tutorial](https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial/)
  - [Using 28BYJ-48 stepper motor with A4988 driver](https://www.instructables.com/28BYJ-48-5V-Stepper-Motor-and-A4988-Driver/)
 
@@ -52,10 +60,13 @@ Content of the project folders:
 - 4x [A4988 stepper motor drivers](https://www.amazon.com/gp/product/B09FQ3G5XQ/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1)
 - 1x [RTC module](https://www.amazon.com/gp/product/B07XY2STMF/ref=ox_sc_act_title_2?smid=A2JLTKYCWT3GQ2&psc=1)
 - 1x [12v power supply](https://www.amazon.com/gp/product/B01GD4ZQRS/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&th=1)
+- 1x [rotary switch](https://www.amazon.com/dp/B07M631J1Q/ref=cm_sw_em_r_mt_dp_0N9X54H6T59A8A89X890?_encoding=UTF8&psc=1)
 - 1x P-channel MOSFET
-- 1x npn BJT- Some wire and resistors
+- 1x npn BJT
+- 5v voltage regulator
 - PLA cable for 3D printer
 - 1x C2032 battery
+- Some wire and resistors
 
 
 ## Installation
