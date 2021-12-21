@@ -26,6 +26,7 @@ const int dirPin_hour_ones = 9 ;
 const int stepPin_hour_ones = 10 ;
 const int dirPin_hour_tens = 11 ;
 const int stepPin_hour_tens = 12 ;
+const int ENABLE_PIN =  13 ;       // Shared enable pin for all steppers
 const int SDA_PIN =     A4 ;       // Used by the RTC (preset config)
 const int SCL_PIN =     A5 ;       // Used by RTC (preset config)
 const int MINUTE_LED =  A2 ;
@@ -35,6 +36,7 @@ const int HOUR_LED =    A1 ;
 
 // Globals
 // Clock digit and stepper motor
+int ClockDigit::enable_pin { ENABLE_PIN } ;
 ClockDigit minute_ones (ClockDigit::REV, stepPin_minute_ones, dirPin_minute_ones) ;
 ClockDigit minute_tens (ClockDigit::FWD, stepPin_minute_tens, dirPin_minute_tens) ;
 ClockDigit hour_ones (ClockDigit::REV, stepPin_hour_ones, dirPin_hour_ones) ;
@@ -62,8 +64,8 @@ void setup () {
     // Setup RTC
     Wire.begin();
 
-    // Set up LEDs
-    clockState.setup() ;
+    // Set up LEDs and enable pin for the steppers
+    ClockDigit::setup() ;
 
     // Setup Rotary Switch
     pinMode(SW_PIN, INPUT);
@@ -85,7 +87,13 @@ void loop () {
     // Check if switch was clicked
     if (switchClicked) {
       switchClicked = false ;
-      clockState.IncrementState() ;
+      clockState.incrementState() ;
+    }
+    clockState.setLEDs() ;
+
+    // If we're still in calibrate state - just end loop now.
+    if   (clockState.getState() == ClockState::calibrate_mode) {
+      return ;
     }
 
     // Every 3 seconds
@@ -124,22 +132,27 @@ void loop () {
 
       // Adjust dials to match time
       bool hour12, pmTime ;
-      int hour = realTimeClock.getHour(hour12, pmTime) - rotaryCount ;
-      int minute = realTimeClock.getMinute() ;
+      int this_hr = realTimeClock.getHour(hour12, pmTime) ;
+      int this_min = realTimeClock.getMinute() ;
 
-      minute_ones.setToDigit(minute % 10);
-      minute_tens.setToDigit(minute / 10);
-      hour_ones.setToDigit(hour % 10);
-      hour_tens.setToDigit(hour / 10);
+      minute_ones.setToDigit(this_min % 10);
+      minute_tens.setToDigit(this_min / 10);
+      hour_ones.setToDigit(this_hr % 10);
+      hour_tens.setToDigit(this_hr / 10);
       PrintTime() ;
+   } // end set dials to current time
 
-   } // end setting dials current time
-
-   // Move the dials
-   minute_ones.run() ;
-   minute_tens.run() ;
-   hour_ones.run() ;
-   hour_tens.run() ;
+  // Move the dials.
+  // If all have stopped moving, disable the steppers to
+  // save power.
+  bool a, b, c, d ;
+  a = minute_ones.run() ;
+  b = minute_tens.run() ;
+  c = hour_ones.run() ;
+  d = hour_tens.run() ;
+  if (!a && !b && !c && !d) {
+     ClockDigit::disableSteppers() ;
+  }
 }
 
 /* Interupt handlers

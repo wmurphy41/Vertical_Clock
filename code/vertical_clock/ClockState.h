@@ -3,10 +3,11 @@
 
 class ClockState {
   public:
-    enum states { normal, edit_minute, edit_hour, dark_mode } ;
+    enum states { normal, edit_minute, edit_hour, calibrate_mode } ;
     ClockState(int h, int m) ;
     void setup() ;
-    void IncrementState() ; 
+    void incrementState() ;
+    void setLEDs() ;
     int getState() ;
 
   private:
