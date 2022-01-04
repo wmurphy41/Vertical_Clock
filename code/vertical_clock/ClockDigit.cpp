@@ -2,6 +2,7 @@
 
 
 void ClockDigit::setup() {
+  pinMode(enable_pin, OUTPUT) ;
   disableSteppers() ;
 }
 

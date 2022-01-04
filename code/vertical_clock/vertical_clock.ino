@@ -15,9 +15,9 @@
 #include "ClockDigit.h"
 
 //Define the pin connection
-const int CLK_PIN =     2 ;        //CLK->D2.  We will monitor for interrupt
-const int SW_PIN =      3 ;        //SW->D3.  We will monitor for interrupt
-const int DT_PIN  =     4 ;        //DT->D4
+const int SW_PIN =      2 ;        //monitor for interrupt
+const int CLK_PIN =     3 ;        //monitor for interrupt
+const int DT_PIN  =     4 ;       
 const int dirPin_minute_ones = 5 ;
 const int stepPin_minute_ones = 6 ;
 const int dirPin_minute_tens = 7 ;
@@ -29,8 +29,8 @@ const int stepPin_hour_tens = 12 ;
 const int ENABLE_PIN =  13 ;       // Shared enable pin for all steppers
 const int SDA_PIN =     A4 ;       // Used by the RTC (preset config)
 const int SCL_PIN =     A5 ;       // Used by RTC (preset config)
-const int MINUTE_LED =  A2 ;
-const int HOUR_LED =    A1 ;
+const int MINUTE_LED =  A1 ;
+const int HOUR_LED =    A2 ; 
 
 
 
@@ -84,6 +84,8 @@ void setup () {
  */
 void loop () {
 
+  static bool firstrun = true ;
+
     // Check if switch was clicked
     if (switchClicked) {
       switchClicked = false ;
@@ -93,6 +95,11 @@ void loop () {
 
     // If we're still in calibrate state - just end loop now.
     if   (clockState.getState() == ClockState::calibrate_mode) {
+      if (firstrun) {
+        Serial.println("calibrate mode") ;
+        PrintTime() ;
+        firstrun = false ;
+      }
       return ;
     }
 
@@ -189,6 +196,7 @@ void SwitchClicked_ISR()
  void PrintTime() {
     bool hour12, pmTime ;
 
+    Serial.print("time: ");  
     Serial.print(realTimeClock.getHour(hour12, pmTime), DEC);
     Serial.print(':');
     Serial.print(realTimeClock.getMinute(), DEC);

@@ -31,7 +31,9 @@ void ClockState::incrementState() {
    }
 }
 void ClockState::setLEDs() {
+
     switch (sketchState) {
+    static bool lightson = false ;
     case normal :
       digitalWrite (minLED, HIGH);
       digitalWrite (hourLED, HIGH);
@@ -46,9 +48,17 @@ void ClockState::setLEDs() {
       break ;
     case calibrate_mode :  
       if (millis() % 4000 > 2000 ) {
+        if (lightson) {
+          lightson = false ;
+          Serial.println("lights off") ;
+        }
         digitalWrite (minLED, LOW);
         digitalWrite (hourLED, LOW);
       } else {
+        if (!lightson) {
+          lightson = true ;
+          Serial.println("lights on") ;
+        }
         digitalWrite (minLED, HIGH);
         digitalWrite (hourLED, HIGH);
       }

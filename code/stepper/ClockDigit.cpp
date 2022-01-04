@@ -1,5 +1,21 @@
 #include "ClockDigit.h"
 
+
+void ClockDigit::setup() {
+  pinMode(enable_pin, OUTPUT) ;
+  disableSteppers() ;
+}
+
+void ClockDigit::enableSteppers() {
+    Serial.print("Enabling steppers though pin: ") ;
+    Serial.println(enable_pin) ; 
+    digitalWrite (enable_pin, LOW);
+}
+
+void ClockDigit::disableSteppers() {
+    digitalWrite (enable_pin, HIGH);
+}
+
 ClockDigit::ClockDigit(int dir, int step_pin, int dir_pin) :
   current_digit(0) ,    // all digits start at 0
   next_digit(0) ,
@@ -13,27 +29,31 @@ ClockDigit::ClockDigit(int dir, int step_pin, int dir_pin) :
 
 void ClockDigit::setToDigit(int digit) {
 
+  if (digit == current_digit) {
+    return ;
+  }
+
   if (stepper.isRunning()) {
     next_digit = digit ;
     Serial.print("Queuing digit: ") ;
     Serial.println(digit) ;
+    return ;
   }
-  else {
-  
-    int delta_digits = digit - current_digit ;
-    if (delta_digits) {
-      stepper.move(invert_direction * STEPS_PER_DIGIT * delta_digits) ;
-      current_digit = digit ;
-      next_digit = current_digit;
-      Serial.print("Setting digit: ") ;
-      Serial.println(digit) ;
-    }
-  }
+
+  int delta_digits = digit - current_digit ;
+  enableSteppers() ;
+  stepper.move(invert_direction * STEPS_PER_DIGIT * delta_digits) ;
+  current_digit = digit ;
+  next_digit = current_digit;
+  Serial.print("Setting digit: ") ;
+  Serial.println(digit) ;
+  return ;
 }
 
-void ClockDigit::run() {
+bool ClockDigit::run() {
   if (!stepper.isRunning() && (next_digit != current_digit)) {
     setToDigit(next_digit) ;
   }
   stepper.run() ;
+  return (stepper.isRunning()) ;
 }
