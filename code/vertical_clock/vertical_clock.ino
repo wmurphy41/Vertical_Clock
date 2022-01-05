@@ -1,46 +1,33 @@
 /*
  *  Vertical Clock
  *
- *
- *
- *
- *
- *
- *
+ *  Use real time clock to keep track of time.
+ *  Drives four stepper motors to move clock digits to match time.
+ *  Collects user input from a rotary switch to change modes and adjust
+ *  time.
  */
 
 #include <DS3231.h>
 #include <Wire.h>
 #include "ClockState.h"
 #include "ClockDigit.h"
-
-//Define the pin connection
-const int SW_PIN =      2 ;        //monitor for interrupt
-const int CLK_PIN =     3 ;        //monitor for interrupt
-const int DT_PIN  =     4 ;       
-const int dirPin_minute_ones = 5 ;
-const int stepPin_minute_ones = 6 ;
-const int dirPin_minute_tens = 7 ;
-const int stepPin_minute_tens = 8 ;
-const int dirPin_hour_ones = 9 ;
-const int stepPin_hour_ones = 10 ;
-const int dirPin_hour_tens = 11 ;
-const int stepPin_hour_tens = 12 ;
-const int ENABLE_PIN =  13 ;       // Shared enable pin for all steppers
-const int SDA_PIN =     A4 ;       // Used by the RTC (preset config)
-const int SCL_PIN =     A5 ;       // Used by RTC (preset config)
-const int MINUTE_LED =  A1 ;
-const int HOUR_LED =    A2 ; 
+#include "pins.h"         // pin assignments
 
 
+// Logic constants
+const int LOOP_TIMER = 3000 ;     // Time between checks for digit change (3s)
 
 // Globals
 // Clock digit and stepper motor
+// Local definitions of the static class members
 int ClockDigit::enable_pin { ENABLE_PIN } ;
-ClockDigit minute_ones (ClockDigit::REV, stepPin_minute_ones, dirPin_minute_ones) ;
-ClockDigit minute_tens (ClockDigit::FWD, stepPin_minute_tens, dirPin_minute_tens) ;
-ClockDigit hour_ones (ClockDigit::REV, stepPin_hour_ones, dirPin_hour_ones) ;
-ClockDigit hour_tens (ClockDigit::FWD, stepPin_hour_tens, dirPin_hour_tens) ;
+int ClockDigit::sp = 0 ;
+ClockDigit *ClockDigit::digit_stack[NUM_DIGITS] ;
+// clock digit objects
+ClockDigit minute_ones (ClockDigit::REV, STEPPIN_MINUTE_ONES, DIRPIN_MINUTE_ONES) ;
+ClockDigit minute_tens (ClockDigit::FWD, STEPPIN_MINUTE_TENS, DIRPIN_MINUTE_TENS) ;
+ClockDigit hour_ones (ClockDigit::REV, STEPPIN_HOUR_ONES, DIRPIN_HOUR_ONES) ;
+ClockDigit hour_tens (ClockDigit::FWD, STEPPIN_HOUR_TENS, DIRPIN_HOUR_TENS) ;
 
 // State engine
 ClockState clockState(HOUR_LED, MINUTE_LED) ;
@@ -50,7 +37,8 @@ volatile int lastCLK = 0;
 volatile int rotaryCount = 0 ;
 volatile bool switchClicked = false ;
 
-DS3231 realTimeClock;                 // Real time clock
+// RTC
+DS3231 realTimeClock;
 
 
 /* Setup()
@@ -66,6 +54,7 @@ void setup () {
 
     // Set up LEDs and enable pin for the steppers
     ClockDigit::setup() ;
+    clockState.setup() ;
 
     // Setup Rotary Switch
     pinMode(SW_PIN, INPUT);
@@ -80,11 +69,17 @@ void setup () {
 
 /*
  * loop()
- *
+ * - If the switch was clicked, increment the clock state
+ * - If we're in calibrate mode, then jump out of loop (no actions)
+ * - Every LOOP_TIMER milliseconds,
+ *    - Check if switch was rotated to adjust time
+ *    - Update dials to match clock time
+ * - Move stepper motors one step until all match
+ *     the digits where they are supposed to be.
  */
 void loop () {
 
-  static bool firstrun = true ;
+    static bool firstrun = true ;
 
     // Check if switch was clicked
     if (switchClicked) {
@@ -103,11 +98,11 @@ void loop () {
       return ;
     }
 
-    // Every 3 seconds
+    // Every LOOP_TIMER milliseconds
     // - Check if switch was rotated to adjust time
     // - Update dials to match clock time
     static long int lastTimeRan = 0 ;
-    if ((millis() - lastTimeRan) > 3000) {
+    if ((millis() - lastTimeRan) > LOOP_TIMER) {
       lastTimeRan = millis() ;
 
       // if switch rotated adjust time
@@ -149,17 +144,10 @@ void loop () {
       PrintTime() ;
    } // end set dials to current time
 
-  // Move the dials.
-  // If all have stopped moving, disable the steppers to
-  // save power.
-  bool a, b, c, d ;
-  a = minute_ones.run() ;
-  b = minute_tens.run() ;
-  c = hour_ones.run() ;
-  d = hour_tens.run() ;
-  if (!a && !b && !c && !d) {
-     ClockDigit::disableSteppers() ;
-  }
+  // Move stepper motors one step until all match
+  // the digits where they are supposed to be.
+  ClockDigit::run_all() ;
+
 }
 
 /* Interupt handlers
@@ -183,7 +171,7 @@ void SwitchClicked_ISR()
 {
   static long timeLastClick = 0 ;
 
-  if ( millis() - timeLastClick > 500 ) {  // Avoids spurious double reads of same click
+  if ( millis() - timeLastClick > 500 ) {  // Avoids spurious double reads of same clicks
     switchClicked = true ;
     timeLastClick = millis() ;
   }
@@ -191,12 +179,12 @@ void SwitchClicked_ISR()
 
 
  /*
-  *  helper functions
+  *  helper functions.  For debugging only.
   */
  void PrintTime() {
     bool hour12, pmTime ;
 
-    Serial.print("time: ");  
+    Serial.print("time: ");
     Serial.print(realTimeClock.getHour(hour12, pmTime), DEC);
     Serial.print(':');
     Serial.print(realTimeClock.getMinute(), DEC);

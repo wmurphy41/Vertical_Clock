@@ -21,6 +21,11 @@ void ClockState::setup() {
     digitalWrite (hourLED, LOW);
  }
 
+
+// Cycles through the clock states
+// calibrate -> normal -> edit_hour -> edit_minute
+//                ^                        |
+//                +------------------------+
 void ClockState::incrementState() {
 
    if (sketchState == calibrate_mode) {
@@ -30,39 +35,47 @@ void ClockState::incrementState() {
       sketchState = (sketchState + 1) % 3 ;
    }
 }
+
+// Set the LEDs to match the state
+//  - Normal - both on
+//  - Edit Minutes - hour off, minute fast blinking
+//  - Edit Hours - minute off, hour fast blinking
+//  - Calibration mode - both slow blinking
 void ClockState::setLEDs() {
 
     switch (sketchState) {
-    static bool lightson = false ;
     case normal :
       digitalWrite (minLED, HIGH);
       digitalWrite (hourLED, HIGH);
       break ;
     case edit_minute :
-      digitalWrite (minLED, HIGH);
+      if (millis() % (2*FAST_BLINK) > FAST_BLINK ) {
+        digitalWrite (minLED, LOW);
+      }
+      else {
+        digitalWrite (minLED, HIGH);
+      }
       digitalWrite (hourLED, LOW);
       break ;
     case edit_hour :
       digitalWrite (minLED, LOW);
-      digitalWrite (hourLED, HIGH);
+      if (millis() % (2*FAST_BLINK) > FAST_BLINK ) {
+        digitalWrite (hourLED, LOW);
+      }
+      else {
+        digitalWrite (hourLED, HIGH);
+      }
       break ;
-    case calibrate_mode :  
-      if (millis() % 4000 > 2000 ) {
-        if (lightson) {
-          lightson = false ;
-          Serial.println("lights off") ;
-        }
+    case calibrate_mode :
+      if (millis() % (2*SLOW_BLINK) > SLOW_BLINK ) {
         digitalWrite (minLED, LOW);
         digitalWrite (hourLED, LOW);
-      } else {
-        if (!lightson) {
-          lightson = true ;
-          Serial.println("lights on") ;
-        }
+      }
+      else {
         digitalWrite (minLED, HIGH);
         digitalWrite (hourLED, HIGH);
       }
-      break ;    
+      break ;
    }
 }
 

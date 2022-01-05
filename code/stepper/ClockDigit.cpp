@@ -7,8 +7,6 @@ void ClockDigit::setup() {
 }
 
 void ClockDigit::enableSteppers() {
-    Serial.print("Enabling steppers though pin: ") ;
-    Serial.println(enable_pin) ; 
     digitalWrite (enable_pin, LOW);
 }
 
