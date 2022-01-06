@@ -20,6 +20,8 @@ const int ENABLE_PIN =  13 ;       // Shared enable pin for all steppers
 //Define the pin connections for the real time clock
 const int SDA_PIN =     A4 ;       // Used by the RTC (preset config)
 const int SCL_PIN =     A5 ;       // Used by RTC (preset config)
+
+// Pins for LEDs
 const int MINUTE_LED =  A1 ;
 const int HOUR_LED =    A2 ;
 
