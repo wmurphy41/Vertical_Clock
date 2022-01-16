@@ -14,7 +14,7 @@
   The original posting did not include wiring diagrams.  I've created them for this project and you can find them in the circuits folder.
 
  In creating the designs for this project, I've made some changes that I found made the project easier to develop and improved usage:
- - Used A4988 stepper motor driver for the 28BYJ-48 motors instead of their default driver.  It takes a little hacking, but it reduces pin requirement for each motor from 2 to 4.
+ - Used A4988 stepper motor driver for the 28BYJ-48 motors instead of their default driver.  It takes a little hacking, but it reduces pin requirement for each motor from 4 to 2.
  - Added a rotary switch for adjusting the time for daylight savings or if the RTC battery dies.  Feature allows you to adjust either minutes or hours.
  - Added a calibration mode.  On first starting, the numbers need to be set to be reset to zero before starting to tell time.  Any time there is a power outage, on restart the system goes to calibration mode with the LEDs blinking.  Once you have set the numbers to zero, you push the rotary switch and it starts telling time.
 
@@ -33,7 +33,6 @@ Content of the project folders:
 
 ## Bill of Materials
 - 1x Arduino nano
-- 1x [A4988 Expansion Board](https://www.amazon.com/gp/product/B01D2HL9T8/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1)
 - 4x [12v 28BYJ-48 stepper motors](https://www.amazon.com/gp/product/B015RQ97W8/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1)
 - 2x [small led backlight module](amazon.com/gp/product/B01N6XME2Q/ref=ox_sc_act_title_1?smid=ATVPDKIKX0DER&psc=1)
 - 4x [A4988 stepper motor drivers](https://www.amazon.com/gp/product/B09FQ3G5XQ/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1)
